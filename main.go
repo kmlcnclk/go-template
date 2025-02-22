@@ -9,8 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"go-template/app/dummy"
 	"go-template/app/healthcheck"
-	"go-template/app/product"
 	"go-template/infra/couchbase"
 	"go-template/infra/server"
 	"go-template/pkg/config"
@@ -29,8 +29,8 @@ func main() {
 	couchbaseRepository := couchbase.NewCouchbaseRepository(tp)
 
 	// Dependency Injection
-	getProductHandler := product.NewGetProductHandler(couchbaseRepository, httpClient)
-	createProductHandler := product.NewCreateProductHandler(couchbaseRepository)
+	getDummyHandler := dummy.NewGetDummyHandler(couchbaseRepository, httpClient)
+	createDummyHandler := dummy.NewCreateDummyHandler(couchbaseRepository)
 	healthcheckHandler := healthcheck.NewHealthCheckHandler()
 
 	// Init Fiber app
@@ -43,7 +43,7 @@ func main() {
 
 	server.InitMiddlewares(app)
 
-	server.InitRouters(app, getProductHandler, createProductHandler, healthcheckHandler)
+	server.InitRouters(app, getDummyHandler, createDummyHandler, healthcheckHandler)
 
 	server.Start(app, appConfig)
 

@@ -1,4 +1,4 @@
-package product
+package dummy
 
 import (
 	"context"
@@ -7,27 +7,27 @@ import (
 	"net/http"
 )
 
-type GetProductRequest struct {
+type GetDummyRequest struct {
 	ID string `json:"id" param:"id"`
 }
 
-type GetProductResponse struct {
-	Product *domain.Product `json:"product"`
+type GetDummyResponse struct {
+	Dummy *domain.Dummy `json:"dummy"`
 }
 
-type GetProductHandler struct {
+type GetDummyHandler struct {
 	repository Repository
 	httpClient *http.Client
 }
 
-func NewGetProductHandler(repository Repository, httpClient *http.Client) *GetProductHandler {
-	return &GetProductHandler{
+func NewGetDummyHandler(repository Repository, httpClient *http.Client) *GetDummyHandler {
+	return &GetDummyHandler{
 		repository: repository,
 		httpClient: httpClient,
 	}
 }
 
-func (h *GetProductHandler) Handle(ctx context.Context, req *GetProductRequest) (*GetProductResponse, error) {
+func (h *GetDummyHandler) Handle(ctx context.Context, req *GetDummyRequest) (*GetDummyResponse, error) {
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://www.google.com", nil)
 	if err != nil {
 		return nil, err
@@ -43,10 +43,10 @@ func (h *GetProductHandler) Handle(ctx context.Context, req *GetProductRequest) 
 		return nil, err
 	}
 
-	product, err := h.repository.GetProduct(ctx, req.ID)
+	dummy, err := h.repository.GetDummy(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GetProductResponse{Product: product}, nil
+	return &GetDummyResponse{Dummy: dummy}, nil
 }

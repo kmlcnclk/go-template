@@ -39,7 +39,7 @@ func NewCouchbaseRepository(tp *sdktrace.TracerProvider) *CouchbaseRepository {
 		zap.L().Fatal("Failed to connect to couchbase", zap.Error(err))
 	}
 
-	bucket := cluster.Bucket("products")
+	bucket := cluster.Bucket("dummys")
 	bucket.WaitUntilReady(3*time.Second, &gocb.WaitUntilReadyOptions{})
 
 	return &CouchbaseRepository{
@@ -49,8 +49,8 @@ func NewCouchbaseRepository(tp *sdktrace.TracerProvider) *CouchbaseRepository {
 	}
 }
 
-func (r *CouchbaseRepository) GetProduct(ctx context.Context, id string) (*domain.Product, error) {
-	ctx, span := r.tracer.Wrapped().Start(ctx, "GetProduct")
+func (r *CouchbaseRepository) GetDummy(ctx context.Context, id string) (*domain.Dummy, error) {
+	ctx, span := r.tracer.Wrapped().Start(ctx, "GetDummy")
 	defer span.End()
 
 	data, err := r.bucket.DefaultCollection().Get(id, &gocb.GetOptions{
@@ -60,44 +60,44 @@ func (r *CouchbaseRepository) GetProduct(ctx context.Context, id string) (*domai
 	})
 	if err != nil {
 		if errors.Is(err, gocb.ErrDocumentNotFound) {
-			return nil, errors.New("product not found")
+			return nil, errors.New("dummy not found")
 		}
 
-		zap.L().Error("Failed to get product", zap.Error(err))
+		zap.L().Error("Failed to get dummy", zap.Error(err))
 		return nil, err
 	}
 
-	var product domain.Product
-	if err := data.Content(&product); err != nil {
-		zap.L().Error("Failed to unmarshal product", zap.Error(err))
+	var dummy domain.Dummy
+	if err := data.Content(&dummy); err != nil {
+		zap.L().Error("Failed to unmarshal dummy", zap.Error(err))
 		return nil, err
 	}
 
-	return &product, nil
+	return &dummy, nil
 }
 
-func (r *CouchbaseRepository) CreateProduct(ctx context.Context, product *domain.Product) error {
-	_, err := r.bucket.DefaultCollection().Insert(product.ID, product, &gocb.InsertOptions{
+func (r *CouchbaseRepository) CreateDummy(ctx context.Context, dummy *domain.Dummy) error {
+	_, err := r.bucket.DefaultCollection().Insert(dummy.ID, dummy, &gocb.InsertOptions{
 		Timeout: 3 * time.Second,
 		Context: ctx,
 	})
 	if err != nil {
-		zap.L().Error("Failed to create product", zap.Error(err))
+		zap.L().Error("Failed to create dummy", zap.Error(err))
 		return err
 	}
 
 	return nil
 }
 
-func (r *CouchbaseRepository) UpdateProduct(ctx context.Context, product *domain.Product) error {
-	ctx, span := r.tracer.Wrapped().Start(ctx, "UpdateProduct")
-	_, err := r.bucket.DefaultCollection().Replace(product.ID, product, &gocb.ReplaceOptions{
+func (r *CouchbaseRepository) UpdateDummy(ctx context.Context, dummy *domain.Dummy) error {
+	ctx, span := r.tracer.Wrapped().Start(ctx, "UpdateDummy")
+	_, err := r.bucket.DefaultCollection().Replace(dummy.ID, dummy, &gocb.ReplaceOptions{
 		Timeout:    3 * time.Second,
 		Context:    ctx,
 		ParentSpan: gocbopentelemetry.NewOpenTelemetryRequestSpan(ctx, span),
 	})
 	if err != nil {
-		zap.L().Error("Failed to update product", zap.Error(err))
+		zap.L().Error("Failed to update dummy", zap.Error(err))
 		return err
 	}
 

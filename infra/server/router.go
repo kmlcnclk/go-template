@@ -10,12 +10,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func InitRouters(app *fiber.App, getDummyHandler *dummy.GetDummyHandler, createDummyHandler *dummy.CreateDummyHandler, healthcheckHandler *healthcheck.HealthCheckHandler) {
+func InitRouters(app *fiber.App, getDummyHandler *dummy.GetDummyHandler, createDummyHandler *dummy.CreateDummyHandler, healthcheckHandler *healthcheck.HealthCheckHandler, sendRequestToRabbitMQ *dummy.SendRequestToRabbitMQHandler) {
 
 	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 	app.Get("/healthcheck", handler.Handle[healthcheck.HealthCheckRequest, healthcheck.HealthCheckResponse](healthcheckHandler))
 
-	app.Get("/dummys/:id", handler.Handle[dummy.GetDummyRequest, dummy.GetDummyResponse](getDummyHandler))
-	app.Post("/dummys", handler.Handle[dummy.CreateDummyRequest, dummy.CreateDummyResponse](createDummyHandler))
+	app.Get("/dummy/:id", handler.Handle[dummy.GetDummyRequest, dummy.GetDummyResponse](getDummyHandler))
+	app.Post("/dummy", handler.Handle[dummy.CreateDummyRequest, dummy.CreateDummyResponse](createDummyHandler))
+	app.Get("/dummy/send-request-to-rabbit-mq", handler.Handle[dummy.SendRequestToRabbitMQRequest, dummy.SendRequestToRabbitMQResponse](sendRequestToRabbitMQ))
 
 }

@@ -12,6 +12,7 @@ import (
 	"go-template/app/dummy"
 	"go-template/app/healthcheck"
 	"go-template/infra/couchbase"
+	"go-template/infra/rabbitmq"
 	"go-template/infra/server"
 	"go-template/pkg/config"
 	_ "go-template/pkg/log"
@@ -26,10 +27,19 @@ func main() {
 	tp := tracer.InitTracer()
 	httpClient := httpclient.HttpClient()
 
+	rmq, err := rabbitmq.NewRabbitMQ(appConfig.RabbitMQURL, "my_queue", "my_exchange", "direct")
+
+	if err != nil {
+		zap.L().Fatal("failed to initialize RabbitMQ", zap.Error(err))
+	}
+
+	defer rmq.Close()
+
 	couchbaseRepository := couchbase.NewCouchbaseRepository(tp)
 
 	// Dependency Injection
 	getDummyHandler := dummy.NewGetDummyHandler(couchbaseRepository, httpClient)
+	sendRequestToRabbitMQ := dummy.NewSendRequestToRabbitMQHandler(couchbaseRepository, httpClient, rmq)
 	createDummyHandler := dummy.NewCreateDummyHandler(couchbaseRepository)
 	healthcheckHandler := healthcheck.NewHealthCheckHandler()
 
@@ -43,7 +53,7 @@ func main() {
 
 	server.InitMiddlewares(app)
 
-	server.InitRouters(app, getDummyHandler, createDummyHandler, healthcheckHandler)
+	server.InitRouters(app, getDummyHandler, createDummyHandler, healthcheckHandler, sendRequestToRabbitMQ)
 
 	server.Start(app, appConfig)
 
